@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import pickle
 import time
+from gestures import *
+import numpy as np
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
@@ -26,15 +28,13 @@ class HandNetwork(nn.Module):
         x = self.fc3(x)
         return x
 
-with open("models/model.pkl", "rb") as file:
+with open("models/model2.pkl", "rb") as file:
     model = pickle.load(file)
 
-model.eval()
-
 cap = cv2.VideoCapture(0)
-frameCounter = 0
-prevTime = 0
-with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, static_image_mode=False, max_num_hands=1) as hands:
+frame_counter = 0
+prev_time = 0
+with mp_hands.Hands(min_detection_confidence=0.95, min_tracking_confidence=0.7, max_num_hands=1) as hands:
     while cap.isOpened():
         ret, frame = cap.read()
         landmarks = []
@@ -45,21 +45,26 @@ with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, s
         image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-        if cv2.waitKey(1) &0xFF == ord('p'):
-            if results.multi_hand_landmarks:
-                for landmark in results.multi_hand_landmarks[0].landmark:
-                    x, y = landmark.x, landmark.y
-                    landmarks.append([x,y])
-                landmarks = torch.tensor(landmarks)
-                out = torch.argmax(model(landmarks.view(-1,21,2)))
-                print(f"Prediction: {classes[out]}")
+        frame_counter += 1
 
-        # Rendering results
-        
+        if results.multi_hand_landmarks:
+            for landmark in results.multi_hand_landmarks[0].landmark:
+                x, y = landmark.x, landmark.y
+                landmarks.append([x,y])
+            landmarks = np.array(landmarks)
+            out = model.predict(landmarks.reshape(-1,21*2)[0].reshape(1,-1)).item()
+            print(f"Prediction: {classes[out]}")
+            if classes[out] == 'up':
+                increase_volume()
+            if classes[out] == 'down':
+                decrease_volume()
+            if classes[out] == 'thumbs up':
+                skip_track()
+
         # Print fps
-        currTime = time.time()
-        fps = 1 / (currTime-prevTime)
-        prevTime = currTime
+        curr_time = time.time()
+        fps = 1 / (curr_time-prev_time)
+        prev_time = curr_time
         image = cv2.flip(image,1)
         cv2.putText(image, f"FPS: {fps}", (20,70), cv2.FONT_HERSHEY_PLAIN, 3, (0, 196, 255), 2)
 
