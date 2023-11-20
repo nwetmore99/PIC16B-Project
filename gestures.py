@@ -3,11 +3,13 @@ import time
 import pyautogui
 
 def increase_volume():
-    pyautogui.press(u'KEYTYPE_SOUND_UP')
+    pyautogui.press(u'KEYTYPE_SOUND_UP') # for mac
+    pyautogui.press("volumeup") # for windows
 
 
 def decrease_volume():
-    pyautogui.press(u'KEYTYPE_SOUND_DOWN')
+    pyautogui.press(u'KEYTYPE_SOUND_DOWN') # for mac
+    pyautogui.press("volumedown") # for windows
 
 def skip_track():
     pyautogui.press(u'KEYTYPE_NEXT')
