@@ -1,23 +1,37 @@
 import subprocess
 import time
 import pyautogui
+import platform
+
+print("Darwin" == platform.system())
 
 def increase_volume():
-    pyautogui.press(u'KEYTYPE_SOUND_UP') # for mac
-    pyautogui.press("volumeup") # for windows
+    if platform.system() == "Darwin":
+        pyautogui.press(u'KEYTYPE_SOUND_UP') # for mac
+    else:
+        pyautogui.press("volumeup") # for windows
 
 
 def decrease_volume():
-    pyautogui.press(u'KEYTYPE_SOUND_DOWN') # for mac
-    pyautogui.press("volumedown") # for windows
+    if platform.system() == "Darwin":
+        pyautogui.press(u'KEYTYPE_SOUND_DOWN') # for mac
+    else:
+        pyautogui.press("volumedown") # for windows
 
-def skip_track():
-    pyautogui.press(u'KEYTYPE_NEXT')
-    time.sleep(3)
 
 def play_pause():
-    pyautogui.press(u'KEYTYPE_PLAY')
+    if platform.system() == "Darwin":
+        pyautogui.press(u'KEYTYPE_PLAY')
+    else:
+        pyautogui.press("playpause")
     time.sleep(1)
+
+def skip_track():
+    if platform.system() == "Darwin":
+        pyautogui.press(u'KEYTYPE_NEXT')
+    else:
+        pyautogui.press("nexttrack")
+    time.sleep(3)
 
 # exec(open('win_volumeup.py').read())                
 # exec(open('win_volumedown.py').read())

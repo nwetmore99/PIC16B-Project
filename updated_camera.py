@@ -7,7 +7,6 @@ import pickle
 import time
 from gestures import *
 
-mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 classes = ("down", "up", "thumbs up", "stop")
 
@@ -38,36 +37,37 @@ frame_counter = 0
 prev_time = 0
 with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, max_num_hands=1) as hands:
     while cap.isOpened():
-        ret, frame = cap.read()
-        landmarks = []
-        # Detections
-        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) # changes from bgr to rgb since cv2 is bgr but mediapipe requires rgb
-        image.flags.writeable = False
-        results = hands.process(image) # this makes the actual detections
-        image.flags.writeable = True
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-
+        ret, image = cap.read()
         frame_counter += 1
+        landmarks = []
 
-        if frame_counter % 1 == 0 and results.multi_hand_landmarks:
-            for landmark in results.multi_hand_landmarks[0].landmark:
-                x, y = landmark.x, landmark.y
-                landmarks.append([x,y])
-            with torch.no_grad():
-                landmarks = torch.tensor(landmarks)
-                out = model(landmarks.view(-1,21,2))
-                confidence = torch.max(F.softmax(out,1)).item()
-                prediction = torch.argmax(out)
-                print(f"Prediction: {classes[prediction]}, Confidence: {confidence}")
-                if confidence >= 0.95:
-                    if classes[prediction] == 'up':
-                        increase_volume()
-                    if classes[prediction] == 'down':
-                        decrease_volume()
-                    if classes[prediction] == 'stop':
-                        play_pause()
-                    if classes[prediction] == 'thumbs up':
-                        skip_track()
+        if frame_counter % 2 == 0:
+            # Detections
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # changes from bgr to rgb since cv2 is bgr but mediapipe requires rgb
+            image.flags.writeable = False
+            results = hands.process(image) # this makes the actual detections
+            image.flags.writeable = True
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+            if results.multi_hand_landmarks:
+                for landmark in results.multi_hand_landmarks[0].landmark:
+                    x, y = landmark.x, landmark.y
+                    landmarks.append([x,y])
+                with torch.no_grad():
+                    landmarks = torch.tensor(landmarks)
+                    out = model(landmarks.view(-1,21,2))
+                    confidence = torch.max(F.softmax(out,1)).item()
+                    prediction = torch.argmax(out)
+                    print(classes[prediction], confidence)
+                    if confidence >= 0.95:
+                        if classes[prediction] == 'up':
+                            increase_volume()
+                        if classes[prediction] == 'down':
+                            decrease_volume()
+                        if classes[prediction] == 'stop':
+                            play_pause()
+                        if classes[prediction] == 'thumbs up':
+                            break
 
         # Print fps
         curr_time = time.time()
