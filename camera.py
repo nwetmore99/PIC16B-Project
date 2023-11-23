@@ -28,7 +28,7 @@ class HandNetwork(nn.Module):
         x = self.fc3(x)
         return x
 
-with open("models/model4.pkl", "rb") as file:
+with open("models/model6.pkl", "rb") as file:
     model = pickle.load(file)
 
 model.eval()
