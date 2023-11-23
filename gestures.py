@@ -31,7 +31,14 @@ def skip_track():
         pyautogui.press(u'KEYTYPE_NEXT')
     else:
         pyautogui.press("nexttrack")
-    time.sleep(3)
+    time.sleep(2)
+
+def prev_track():
+    if os == "Darwin":
+        pyautogui.press(u'KEYTYPE_PREVIOUS')
+    else:
+        pyautogui.press("prevtrack")
+    time.sleep(1)
 
 # exec(open('win_volumeup.py').read())                
 # exec(open('win_volumedown.py').read())

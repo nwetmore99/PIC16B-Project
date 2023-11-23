@@ -8,7 +8,8 @@ import time
 from gestures import *
 
 mp_hands = mp.solutions.hands
-classes = ("down", "up", "thumbs up", "stop")
+# classes = ("down", "up", "thumbs up", "stop")
+classes = ("down", "up", "stop", "thumbright", "thumbleft")
 
 class HandNetwork(nn.Module):
     def __init__(self):
@@ -27,12 +28,14 @@ class HandNetwork(nn.Module):
         x = self.fc3(x)
         return x
 
-with open("models/model3.pkl", "rb") as file:
+with open("models/model4.pkl", "rb") as file:
     model = pickle.load(file)
 
 model.eval()
 
 cap = cv2.VideoCapture(0)
+#cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+#cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 frame_counter = 0
 prev_time = 0
 with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, max_num_hands=1) as hands:
@@ -59,15 +62,17 @@ with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, m
                     confidence = torch.max(F.softmax(out,1)).item()
                     prediction = torch.argmax(out)
                     print(classes[prediction], confidence)
-                    if confidence >= 0.95:
+                    if confidence >= 0.93:
                         if classes[prediction] == 'up':
                             increase_volume()
                         if classes[prediction] == 'down':
                             decrease_volume()
                         if classes[prediction] == 'stop':
                             play_pause()
-                        if classes[prediction] == 'thumbs up':
-                            break
+                        if classes[prediction] == 'thumbright':
+                            skip_track()
+                        if classes[prediction] == 'thumbleft':
+                            prev_track()
 
         # Print fps
         curr_time = time.time()
