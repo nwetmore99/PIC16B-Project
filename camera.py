@@ -8,7 +8,6 @@ import time
 from gestures import *
 
 mp_hands = mp.solutions.hands
-# classes = ("down", "up", "thumbs up", "stop")
 classes = ("down", "up", "stop", "thumbright", "thumbleft")
 
 class HandNetwork(nn.Module):
@@ -31,28 +30,32 @@ class HandNetwork(nn.Module):
 with open("models/model6.pkl", "rb") as file:
     model = pickle.load(file)
 
+pyautogui.PAUSE = 0
 model.eval()
 
 cap = cv2.VideoCapture(0)
-#cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-#cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
 frame_counter = 0
 prev_time = 0
-with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, max_num_hands=1) as hands:
+patience = 0
+with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, max_num_hands=2) as hands:
     while cap.isOpened():
         ret, image = cap.read()
         frame_counter += 1
         landmarks = []
 
-        if frame_counter % 2 == 0:
-            # Detections
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # changes from bgr to rgb since cv2 is bgr but mediapipe requires rgb
-            image.flags.writeable = False
-            results = hands.process(image) # this makes the actual detections
-            image.flags.writeable = True
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        # Detections
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # changes from bgr to rgb since cv2 is bgr but mediapipe requires rgb
+        image.flags.writeable = False
+        results = hands.process(image) # this makes the actual detections
+        image.flags.writeable = True
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
+        if frame_counter % 3 == 0:
             if results.multi_hand_landmarks:
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
                 for landmark in results.multi_hand_landmarks[0].landmark:
                     x, y = landmark.x, landmark.y
                     landmarks.append([x,y])
@@ -73,6 +76,12 @@ with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, m
                             skip_track()
                         if classes[prediction] == 'thumbleft':
                             prev_track()
+            else: # if hand is not detected for a set amt of frames, downscale to save pwr
+                patience += 1
+                if patience%30 == 0:
+                    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+                    patience = 0
 
         # Print fps
         curr_time = time.time()
