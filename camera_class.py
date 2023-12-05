@@ -3,14 +3,90 @@ import mediapipe as mp
 import torch
 import torch.nn.functional as F
 from HandNetwork import HandNetwork
+import time
+from gestures import *
 
 class Camera():
     def __init__(self):
         self.classes = ("down", "up", "stop", "thumbright", "thumbleft")
         self.model = HandNetwork(classes=("down", "up", "stop", "thumbright", "thumbleft"))
-        self.model = torch.load("models/model.pth")
+        self.model = torch.load("models/model8.pth")
         self.capture_session = cv2.VideoCapture(0)
         self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
         self.frame_counter = 0
         self.patience = 0
+        self.low_power = 3
+
+    def start_capture_session(self):
+        mp_hands = mp.solutions.hands
+        prev_time = 0
+        with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, max_num_hands=2) as hands:
+            while self.capture_session.isOpened():
+                ret, image = self.capture_session.read()
+                self.frame_counter += 1
+                landmarks = []
+
+                if self.frame_counter % self.low_power == 0:
+                    # Detections
+                    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # changes from bgr to rgb since cv2 is bgr but mediapipe requires rgb
+                    image.flags.writeable = False
+                    results = hands.process(image) # this makes the actual detections
+                    image.flags.writeable = True
+                    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+                    if self.frame_counter % 3 == 0:
+                        if results.multi_hand_landmarks:
+                            self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+                            self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+                            self.low_power = 1
+                            for landmark in results.multi_hand_landmarks[0].landmark:
+                                x, y = landmark.x, landmark.y
+                                landmarks.append([x,y])
+                            with torch.no_grad():
+                                landmarks = torch.tensor(landmarks)
+                                out = self.model(landmarks.view(-1,21,2))
+                                confidence = torch.max(F.softmax(out,1)).item()
+                                prediction = torch.argmax(out)
+                                print(self.classes[prediction], confidence)
+                                if confidence >= 0.93:
+                                    if self.classes[prediction] == 'up':
+                                        increase_volume()
+                                    if self.classes[prediction] == 'down':
+                                        decrease_volume()
+                                    if self.classes[prediction] == 'stop':
+                                        play_pause()
+                                    if self.classes[prediction] == 'thumbright':
+                                        skip_track()
+                                    if self.classes[prediction] == 'thumbleft':
+                                        prev_track()
+                                    if self.classes[prediction] == 'right':
+                                        scrub_spotify(10)
+                                    if self.classes[prediction] == 'left':
+                                        scrub_spotify(-10)
+                        else: # if hand is not detected for a set amt of frames, downscale to save pwr
+                            self.patience += 1
+                            if self.patience%15 == 0:
+                                self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                                self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+                                self.patience = 0
+                                self.low_power = 3
+
+                # Print fps
+                curr_time = time.time()
+                fps = 1 / (curr_time-prev_time)
+                prev_time = curr_time
+                image = cv2.flip(image,1)
+                cv2.putText(image, f"FPS: {fps}", (20,70), cv2.FONT_HERSHEY_PLAIN, 3, (0, 196, 255), 2)
+
+                cv2.imshow("Hand Tracking", image)
+                if cv2.waitKey(10) & 0xFF == ord('q'):
+                    self.end_capture_session()
+                    break
+            
+    def end_capture_session(self):
+        self.capture_session.release()
+        cv2.destroyAllWindows()
+
+cap = Camera()
+cap.start_capture_session()
