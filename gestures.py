@@ -1,6 +1,7 @@
 import time
 import pyautogui
 import platform
+import subprocess
 
 os = platform.system()
 
@@ -36,3 +37,34 @@ def prev_track():
     else:
         pyautogui.press("prevtrack")
     time.sleep(1)
+
+def is_spotify_running():
+    # AppleScript to check if Spotify is running
+    applescript = '''
+        tell application "System Events"
+            set isRunning to (count of (every process whose name is "Spotify")) > 0
+        end tell
+        return isRunning
+    '''
+
+    # Execute the AppleScript using osascript and capture the result
+    result = subprocess.run(['osascript', '-e', applescript], capture_output=True, text=True)
+    
+    # Convert the result to a boolean
+    return result.stdout.strip() == 'true'
+
+def scrub_spotify(offset):
+    if is_spotify_running():
+        # AppleScript to scrub Spotify
+        applescript = f'''
+            tell application "Spotify"
+                set currentTrack to the current track
+                set currentPosition to player position
+                set player position to currentPosition + {offset} # Scrub forward by (typically) 10 seconds, adjust as needed
+            end tell
+        '''
+
+        # Execute the AppleScript using osascript
+        subprocess.run(['osascript', '-e', applescript])
+    else:
+        print("Spotify is not running.") 

@@ -4,10 +4,11 @@ class HandNetwork(nn.Module):
     def __init__(self, classes):
         super(HandNetwork, self).__init__()
         self.flatten = nn.Flatten()
+        self.relu = nn.LeakyReLU()
         self.fc1 = nn.Linear(42, 120)
-        self.relu = nn.ReLU()
         self.fc2 = nn.Linear(120, 100)
-        self.fc3 = nn.Linear(100, len(classes))
+        self.fc3 = nn.Linear(100, 100)
+        self.fc4 = nn.Linear(100, len(classes))
     def forward(self, x):
         x = self.flatten(x)
         x = self.fc1(x)
@@ -15,4 +16,6 @@ class HandNetwork(nn.Module):
         x = self.fc2(x)
         x = self.relu(x)
         x = self.fc3(x)
+        x = self.relu(x)
+        x = self.fc4(x)
         return x

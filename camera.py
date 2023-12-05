@@ -27,12 +27,12 @@ mp_hands = mp.solutions.hands
 #         x = self.fc3(x)
 #         return x
 
-model = HandNetwork(classes = ("down", "up", "stop", "thumbright", "thumbleft", "right", "left"))
+model = HandNetwork(classes = ("down", "up", "stop", "thumbright", "thumbleft", "right", "left", "background"))
 
 # with open("models/model6.pkl", "rb") as file:
 #     model = pickle.load(file)
 
-model = torch.load("models/model2.pth")
+model = torch.load("models/model8.pth")
 
 pyautogui.PAUSE = 0
 model.eval()
@@ -46,7 +46,7 @@ patience = 0
 low_power = 3
 
 with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, max_num_hands=2) as hands:
-    classes = ("down", "up", "stop", "thumbright", "thumbleft", "right", "left")
+    classes = ("down", "up", "stop", "thumbright", "thumbleft", "right", "left", "background")
 
     while cap.isOpened():
         ret, image = cap.read()
@@ -75,17 +75,21 @@ with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, m
                         confidence = torch.max(F.softmax(out,1)).item()
                         prediction = torch.argmax(out)
                         print(classes[prediction], confidence)
-                        # if confidence >= 0.97:
-                        #     if classes[prediction] == 'up':
-                        #         increase_volume()
-                        #     if classes[prediction] == 'down':
-                        #         decrease_volume()
-                        #     if classes[prediction] == 'stop':
-                        #         play_pause()
-                        #     if classes[prediction] == 'thumbright':
-                        #         skip_track()
-                        #     if classes[prediction] == 'thumbleft':
-                        #         prev_track()
+                        if confidence >= 0.93:
+                            if classes[prediction] == 'up':
+                                increase_volume()
+                            if classes[prediction] == 'down':
+                                decrease_volume()
+                            if classes[prediction] == 'stop':
+                                play_pause()
+                            if classes[prediction] == 'thumbright':
+                                skip_track()
+                            if classes[prediction] == 'thumbleft':
+                                prev_track()
+                            if classes[prediction] == 'right':
+                                scrub_spotify(10)
+                            if classes[prediction] == 'left':
+                                scrub_spotify(-10)
                 else: # if hand is not detected for a set amt of frames, downscale to save pwr
                     patience += 1
                     if patience%15 == 0:
