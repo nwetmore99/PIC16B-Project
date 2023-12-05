@@ -7,9 +7,9 @@ import time
 from gestures import *
 
 class Camera():
-    def __init__(self):
-        self.classes = ("down", "up", "stop", "thumbright", "thumbleft")
-        self.model = HandNetwork(classes=("down", "up", "stop", "thumbright", "thumbleft"))
+    def __init__(self, confidence_threshold=0.95):
+        self.classes = ("down", "up", "stop", "thumbright", "thumbleft", "right", "left", "background")
+        self.model = HandNetwork(classes=("down", "up", "stop", "thumbright", "thumbleft", "right", "left", "background"))
         self.model = torch.load("models/model8.pth")
         self.capture_session = cv2.VideoCapture(0)
         self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -17,6 +17,7 @@ class Camera():
         self.frame_counter = 0
         self.patience = 0
         self.low_power = 3
+        self.confidence_threshold = confidence_threshold
 
     def start_capture_session(self):
         mp_hands = mp.solutions.hands
@@ -49,7 +50,7 @@ class Camera():
                                 confidence = torch.max(F.softmax(out,1)).item()
                                 prediction = torch.argmax(out)
                                 print(self.classes[prediction], confidence)
-                                if confidence >= 0.93:
+                                if confidence >= self.confidence_threshold:
                                     if self.classes[prediction] == 'up':
                                         increase_volume()
                                     if self.classes[prediction] == 'down':
@@ -88,5 +89,5 @@ class Camera():
         self.capture_session.release()
         cv2.destroyAllWindows()
 
-cap = Camera()
+cap = Camera(confidence_threshold=0.99)
 cap.start_capture_session()
