@@ -24,5 +24,5 @@ left = previous track
 
 right = skip track
 
-### full palm facing the camera
+### Full palm facing the camera
 pause/play media
