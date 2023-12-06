@@ -11,12 +11,17 @@ You have already successfully downloaded the repository! All you need to do is o
 ## Gestures: 
 ### Pointing with your index finger
 up = volume up
+
 down = volume down
+
 left = rewind 10 seconds (only implemented for Spotify)
+
 right = fast forward 10 seconds (only implemented for Spotify)
+
 
 ### Pointing with your thumb
 left = previous track
+
 right = skip track
 
 ### full palm facing the camera
