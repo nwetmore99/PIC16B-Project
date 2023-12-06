@@ -9,7 +9,7 @@ from gestures import *
 class Camera():
     def __init__(self, confidence_threshold=0.95):
         self.classes = ("down", "up", "stop", "thumbright", "thumbleft", "right", "left", "background")
-        self.model = HandNetwork(classes=("down", "up", "stop", "thumbright", "thumbleft", "right", "left", "background"))
+        self.model = HandNetwork(classes=self.classes)
         self.model = torch.load("models/model8.pth")
         self.capture_session = cv2.VideoCapture(0)
         self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -36,7 +36,7 @@ class Camera():
                     image.flags.writeable = True
                     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-                    if self.frame_counter % 3 == 0:
+                    if self.frame_counter % 2 == 0:
                         if results.multi_hand_landmarks:
                             self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
                             self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
@@ -89,5 +89,5 @@ class Camera():
         self.capture_session.release()
         cv2.destroyAllWindows()
 
-cap = Camera(confidence_threshold=0.99)
+cap = Camera()
 cap.start_capture_session()
