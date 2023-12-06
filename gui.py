@@ -8,46 +8,91 @@ Created on Thu Nov 16 01:52:31 2023
 
 ### GUI Design for Camera App ###
 
+## Packages ##
 # Package for GUI #
 import PySimpleGUI as sg
+# Camera class package #
+import HandNetwork
+import camera_class
+
+
+## Variable Storage ##
+confidence_threshold = .95
+# def confidence_threshold(value=1):
+    # """
+    # Function to pass confidence_threshold from gui to camera.
+    # """
+    # return confidence_threshold
 
 ## Stored Text ##
 intro = "This program enables hand gestures to interact with your computer."
 
 ## Creating GUI ##
 sg.theme("DarkBlue14")
-layout = [[sg.Text('Hand Gesture Inputs', font=('Arial', 20))],
+layout = [
+          # Introduction Section #
+          [sg.Text('Hand Gesture Inputs', font=('Arial', 30))],
           [sg.Text(intro)],
           [sg.HSep()],
-          [sg.Text('Enable Camera:', font=('Arial', 15)), sg.Button('Turn on camera')],
+          
+          # Enable Camera #
+          [sg.Text('Enable Camera', font=('Arial', 20))],
+          [sg.Button('Turn on camera')],
           [sg.HSep()],
-          [sg.Text('List of Recognized Gestures', font=('Arial', 15))],
-          [sg.Table([['Point Up',''],
-                     ['Point Down',''],
-                     ['Thumbs Up',''],
-                     ['Open Hand',''],
-                     ['Gesture 6','']],
+          
+          # Settings Tab #
+          [sg.Text('Settings',font=('Arial',20))],
+          [sg.Text('Input Sensitivity')],
+          [sg.Slider([90,99], orientation='h', s=(10,15), 
+                     key='-PER-', default_value = 95)],
+          # Testing button.
+           [sg.Button('Check')],
+          [sg.HSep()],
+          
+          # Gestures List #
+          [sg.Text('List of Recognized Gestures', font=('Arial', 20))],
+          [sg.Table([['Point Up','Volume Up'],
+                     ['Point Down','Volume Down'],
+                     ['Open Hand','Pause/Play'],
+                     ['Thumb Left','Previous Song'],
+                     ['Thumb Right','Skip Song'],
+                     ['Point Left','Scrub Back'],
+                     ['Point Right','Scrub Forward']],
                      ['Recognized Gesture','Output'], 
-                     num_rows=3,
+                     num_rows=3
                      )],
           [sg.HSep()],
-          [sg.Text('Necessary Hotkeys:', font=('Arial', 15))],
+          
+          # Useful Inputs #
+          [sg.Text('Necessary Hotkeys:', font=('Arial', 20))],
           [sg.Frame('Keyboard Inputs', [[
-              sg.Text('Q: Quit Camera'),
-              sg.Text('P: Detect Gesture')
+              sg.Text('Q: Quit Camera')
               ]])],
-          [sg.Quit()]]      
+          [sg.Quit()]
+          ]      
 
-window = sg.Window('Hand Gesture Inputs', layout, size = (500,400)) 
+window = sg.Window('Hand Gesture Inputs', layout, size = (800,600)) 
 
 # Everything runs in the loop here.
 while True:
     event, values = window.read()
     if event == sg.WIN_CLOSED or event == 'Quit':
         break
+    
+    # Testing button.
+    if event =='Check':
+        print("Confidence: ", values['-PER-']/100)
         
     if event == 'Turn on camera':
-        exec(open('camera.py').read())
+        cap = camera_class.Camera(confidence_threshold)
+        cap.start_capture_session()
+        # exec(open('camera.py').read())
+    
+    if event == '-PER-':
+        window['-PER-'].update(values['-PER-'][:-1])
+        confidence_threshold = values['-PER-']/100
+    
+
     
 window.close()
 

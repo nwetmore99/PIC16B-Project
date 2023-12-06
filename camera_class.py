@@ -5,11 +5,34 @@ import torch.nn.functional as F
 from HandNetwork import HandNetwork
 import time
 from gestures import *
+# import torch.nn as nn
+
+
+# class HandNetwork(nn.Module):
+#     def __init__(self, classes):
+#         super(HandNetwork, self).__init__()
+#         self.flatten = nn.Flatten()
+#         self.relu = nn.LeakyReLU()
+#         self.fc1 = nn.Linear(42, 120)
+#         self.fc2 = nn.Linear(120, 100)
+#         self.fc3 = nn.Linear(100, 100)
+#         self.fc4 = nn.Linear(100, len(classes))
+#     def forward(self, x):
+#         x = self.flatten(x)
+#         x = self.fc1(x)
+#         x = self.relu(x)
+#         x = self.fc2(x)
+#         x = self.relu(x)
+#         x = self.fc3(x)
+#         x = self.relu(x)
+#         x = self.fc4(x)
+#         return x
+
 
 class Camera():
     def __init__(self, confidence_threshold=0.95):
         self.classes = ("down", "up", "stop", "thumbright", "thumbleft", "right", "left", "background")
-        self.model = HandNetwork(classes=self.classes)
+        self.model = HandNetwork(classes=("down", "up", "stop", "thumbright", "thumbleft", "right", "left", "background"))
         self.model = torch.load("models/model8.pth")
         self.capture_session = cv2.VideoCapture(0)
         self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -36,7 +59,7 @@ class Camera():
                     image.flags.writeable = True
                     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-                    if self.frame_counter % 2 == 0:
+                    if self.frame_counter % 3 == 0:
                         if results.multi_hand_landmarks:
                             self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
                             self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
@@ -89,5 +112,5 @@ class Camera():
         self.capture_session.release()
         cv2.destroyAllWindows()
 
-cap = Camera()
-cap.start_capture_session()
+# cap = Camera(confidence_threshold=0.99)
+# cap.start_capture_session()
