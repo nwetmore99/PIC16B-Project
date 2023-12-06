@@ -12,7 +12,7 @@ Created on Thu Nov 16 01:52:31 2023
 # Package for GUI #
 import PySimpleGUI as sg
 # Camera class package #
-import HandNetwork
+from HandNetwork import HandNetwork
 import camera_class
 
 
