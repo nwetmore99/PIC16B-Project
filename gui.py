@@ -84,7 +84,7 @@ while True:
         print("Confidence: ", values['-PER-']/100)
         
     if event == 'Turn on camera':
-        cap = camera_class.Camera(confidence_threshold)
+        cap = camera_class.Camera(values['-PER-']/100)
         cap.start_capture_session()
         # exec(open('camera.py').read())
     
