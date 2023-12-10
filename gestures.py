@@ -1,13 +1,18 @@
+# imports
 import time
 import pyautogui
 import platform
 import subprocess
 
+# check user's OS 
 os = platform.system()
+
+# use pyautogui.press to simulate keystrokes, inputs vary based on OS
+#functions are named to be self-explanatory
 
 def increase_volume():
     if os == "Darwin":
-        pyautogui.press(u'KEYTYPE_SOUND_UP') # for mac
+        pyautogui.press(u'KEYTYPE_SOUND_UP') # for mac, "Darwin" corresponds to MacOS
     else:
         pyautogui.press("volumeup") # for windows
 
