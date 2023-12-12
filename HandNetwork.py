@@ -11,11 +11,8 @@ class HandNetwork(nn.Module):
         self.fc4 = nn.Linear(100, len(classes))
     def forward(self, x):
         x = self.flatten(x)
-        x = self.fc1(x)
-        x = self.relu(x)
-        x = self.fc2(x)
-        x = self.relu(x)
-        x = self.fc3(x)
-        x = self.relu(x)
+        x = self.relu(self.fc1(x))
+        x = self.relu(self.fc2(x))
+        x = self.relu(self.fc3(x))
         x = self.fc4(x)
         return x
