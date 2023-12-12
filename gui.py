@@ -86,7 +86,6 @@ while True:
     if event == 'Turn on camera':
         cap = camera_class.Camera(values['-PER-']/100)
         cap.start_capture_session()
-        # exec(open('camera.py').read())
     
     if event == '-PER-':
         window['-PER-'].update(values['-PER-'][:-1])

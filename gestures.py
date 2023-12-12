@@ -47,7 +47,7 @@ def is_spotify_running():
         return isRunning
     '''
 
-    # Execute the AppleScript using osascript and capture the result
+    # Execute AppleScript with osascript and capture the result
     result = subprocess.run(['osascript', '-e', applescript], capture_output=True, text=True)
     
     # Convert the result to a boolean
@@ -66,5 +66,3 @@ def scrub_spotify(offset):
 
         # Execute the AppleScript using osascript
         subprocess.run(['osascript', '-e', applescript])
-    else:
-        print("Spotify is not running.") 
