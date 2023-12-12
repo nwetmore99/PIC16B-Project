@@ -12,9 +12,8 @@ Created on Thu Nov 16 01:52:31 2023
 # Package for GUI #
 import PySimpleGUI as sg
 # Camera class package #
+from Camera import Camera
 from HandNetwork import HandNetwork
-import camera_class
-
 
 ## Variable Storage ##
 confidence_threshold = .95
@@ -84,7 +83,7 @@ while True:
         print("Confidence: ", values['-PER-']/100)
         
     if event == 'Turn on camera':
-        cap = camera_class.Camera(values['-PER-']/100)
+        cap = Camera(values['-PER-']/100)
         cap.start_capture_session()
     
     if event == '-PER-':
