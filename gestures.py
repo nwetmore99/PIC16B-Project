@@ -39,30 +39,35 @@ def prev_track():
     time.sleep(1)
 
 def is_spotify_running():
-    # AppleScript to check if Spotify is running
-    applescript = '''
-        tell application "System Events"
-            set isRunning to (count of (every process whose name is "Spotify")) > 0
-        end tell
-        return isRunning
-    '''
-
-    # Execute AppleScript with osascript and capture the result
-    result = subprocess.run(['osascript', '-e', applescript], capture_output=True, text=True)
-    
-    # Convert the result to a boolean
-    return result.stdout.strip() == 'true'
-
-def scrub_spotify(offset):
-    if is_spotify_running():
-        # AppleScript to scrub Spotify
-        applescript = f'''
-            tell application "Spotify"
-                set currentTrack to the current track
-                set currentPosition to player position
-                set player position to currentPosition + {offset} # Scrub forward by (typically) 10 seconds, adjust as needed
+    if os == 'Darwin':
+        # AppleScript to check if Spotify is running
+        applescript = '''
+            tell application "System Events"
+                set isRunning to (count of (every process whose name is "Spotify")) > 0
             end tell
+            return isRunning
         '''
 
-        # Execute the AppleScript using osascript
-        subprocess.run(['osascript', '-e', applescript])
+        # Execute AppleScript with osascript and capture the result
+        result = subprocess.run(['osascript', '-e', applescript], capture_output=True, text=True)
+
+        # Convert the result to a boolean
+        return result.stdout.strip() == 'true'
+    else:
+        pass
+def scrub_spotify(offset):
+    if os == 'Darwin':
+        if is_spotify_running():
+            # AppleScript to scrub Spotify
+            applescript = f'''
+                tell application "Spotify"
+                    set currentTrack to the current track
+                    set currentPosition to player position
+                    set player position to currentPosition + {offset} # Scrub forward by (typically) 10 seconds, adjust as needed
+                end tell
+            '''
+
+            # Execute the AppleScript using osascript
+            subprocess.run(['osascript', '-e', applescript])
+    else:
+        pass
