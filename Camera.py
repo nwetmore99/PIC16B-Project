@@ -12,8 +12,6 @@ class Camera():
         self.model = HandNetwork(classes=self.classes)
         self.model = torch.load("models/model8.pth")
         self.capture_session = cv2.VideoCapture(0)
-        self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
         self.frame_counter = 0
         self.patience = 0
         self.low_power = 3
@@ -22,12 +20,15 @@ class Camera():
     def start_capture_session(self):
         mp_hands = mp.solutions.hands
         prev_time = 0
+        default_width =  int(self.capture_session.get(3))
+        default_height = int(self.capture_session.get(4))
+        self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, int(default_width/3))
+        self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, int(default_height/3))
         with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, max_num_hands=2) as hands:
             while self.capture_session.isOpened():
                 ret, image = self.capture_session.read()
                 self.frame_counter += 1
                 landmarks = []
-
                 if self.frame_counter % self.low_power == 0:
                     # Detections
                     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # changes from bgr to rgb since cv2 is bgr but mediapipe requires rgb
@@ -36,10 +37,10 @@ class Camera():
                     image.flags.writeable = True
                     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-                    if self.frame_counter % 2 == 0:
+                    if self.frame_counter % 3 == 0:
                         if results.multi_hand_landmarks:
-                            self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-                            self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+                            self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, default_width)
+                            self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, default_height)
                             self.low_power = 1
                             for landmark in results.multi_hand_landmarks[0].landmark:
                                 x, y = landmark.x, landmark.y
@@ -68,8 +69,8 @@ class Camera():
                         else: # if hand is not detected for a set amt of frames, downscale to save pwr
                             self.patience += 1
                             if self.patience%15 == 0:
-                                self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-                                self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+                                self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, int(default_width/3))
+                                self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, int(default_height/3))
                                 self.patience = 0
                                 self.low_power = 3
 
@@ -88,6 +89,3 @@ class Camera():
     def end_capture_session(self):
         self.capture_session.release()
         cv2.destroyAllWindows()
-
-cap = Camera()
-cap.start_capture_session()
