@@ -7,7 +7,11 @@ import time
 from gestures import *
 
 class Camera():
+
     def __init__(self, confidence_threshold=0.95):
+        """
+        Initializes the camera by setting up the model, capture session, frame counters, and confidence threshold
+        """
         self.classes = ("down", "up", "stop", "thumbright", "thumbleft", "right", "left", "background")
         self.model = HandNetwork(classes=self.classes)
         self.model = torch.load("models/model8.pth")
@@ -18,6 +22,9 @@ class Camera():
         self.confidence_threshold = confidence_threshold
 
     def start_capture_session(self):
+        """
+        Starts up the camera and runs it, while periodically predicting the gesture in the camera's frame and calling the gesture functions
+        """
         mp_hands = mp.solutions.hands
         prev_time = 0
         default_width =  int(self.capture_session.get(3))
@@ -66,7 +73,7 @@ class Camera():
                                         scrub_spotify(10)
                                     if self.classes[prediction] == 'left':
                                         scrub_spotify(-10)
-                        else: # if hand is not detected for a set amt of frames, downscale to save pwr
+                        else: # if hand is not detected for a set amount of frames, downscale to save pwr
                             self.patience += 1
                             if self.patience%15 == 0:
                                 self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, int(default_width/3))
@@ -87,5 +94,8 @@ class Camera():
                     break
             
     def end_capture_session(self):
+        """
+        Stops the camera from reading any more input, and deletes the windows the video output was going to.
+        """
         self.capture_session.release()
         cv2.destroyAllWindows()
