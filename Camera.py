@@ -18,18 +18,20 @@ class Camera():
         self.capture_session = cv2.VideoCapture(0)
         self.frame_counter = 0
         self.patience = 0
-        self.low_power = 3
+        self.low_power = 3 # this variable is for the fact that when a hand is not detected, it will only check if a hand is there every 3 frames, since the .process() method is expensive
         self.confidence_threshold = confidence_threshold
 
     def start_capture_session(self):
         """
-        Starts up the camera and runs it, while periodically predicting the gesture in the camera's frame and calling the gesture functions
+        Starts up the camera and runs it, while periodically predicting the gesture in the camera's frame and calling the gesture functions.
+        Also downscales itself when hand is not detected, and upscales when hand is detected, to preserve as much batter as possible.
         """
         mp_hands = mp.solutions.hands
         prev_time = 0
         default_width =  int(self.capture_session.get(3))
         default_height = int(self.capture_session.get(4))
-        self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, int(default_width/3))
+        # we want to start of with a lower resolution (but scale it back up when a hand goes into frame)
+        self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, int(default_width/3)) 
         self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, int(default_height/3))
         with mp_hands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.5, max_num_hands=2) as hands:
             while self.capture_session.isOpened():
@@ -39,16 +41,16 @@ class Camera():
                 if self.frame_counter % self.low_power == 0:
                     # Detections
                     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # changes from bgr to rgb since cv2 is bgr but mediapipe requires rgb
-                    image.flags.writeable = False
+                    image.flags.writeable = False # we change writeable from true to false back to true again to optimize code
                     results = hands.process(image) # this makes the actual detections
                     image.flags.writeable = True
                     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-                    if self.frame_counter % 3 == 0:
+                    if self.frame_counter % 3 == 0: # the 3 here means that in every 3 frames, it will look at the hand and predict its gesture
                         if results.multi_hand_landmarks:
-                            self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, default_width)
+                            self.capture_session.set(cv2.CAP_PROP_FRAME_WIDTH, default_width) # scale the input back up since its detecting hands
                             self.capture_session.set(cv2.CAP_PROP_FRAME_HEIGHT, default_height)
-                            self.low_power = 1
+                            self.low_power = 1 # now that we know a hand is there, we want it to detect the hand every single frame until the hand goes away
                             for landmark in results.multi_hand_landmarks[0].landmark:
                                 x, y = landmark.x, landmark.y
                                 landmarks.append([x,y])
