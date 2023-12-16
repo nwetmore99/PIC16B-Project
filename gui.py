@@ -8,20 +8,13 @@ Created on Thu Nov 16 01:52:31 2023
 
 ### GUI Design for Camera App ###
 
+
 ## Packages ##
 # Package for GUI #
 import PySimpleGUI as sg
 # Camera class package #
 from Camera import Camera
 from HandNetwork import HandNetwork
-
-## Variable Storage ##
-confidence_threshold = .95
-# def confidence_threshold(value=1):
-    # """
-    # Function to pass confidence_threshold from gui to camera.
-    # """
-    # return confidence_threshold
 
 ## Stored Text ##
 intro = "This program enables hand gestures to interact with your computer."
@@ -44,7 +37,7 @@ layout = [
           [sg.Text('Input Sensitivity')],
           [sg.Slider([90,99], orientation='h', s=(10,15), 
                      key='-PER-', default_value = 95)],
-          # Testing button.
+          # Testing button #
            [sg.Button('Check')],
           [sg.HSep()],
           
@@ -70,22 +63,27 @@ layout = [
           [sg.Quit()]
           ]      
 
+# Initialize Window. 
 window = sg.Window('Hand Gesture Inputs', layout, size = (800,600)) 
 
 # Everything runs in the loop here.
 while True:
     event, values = window.read()
+    
+    # Quit Button #
     if event == sg.WIN_CLOSED or event == 'Quit':
         break
     
-    # Testing button.
+    # Testing Button #
     if event =='Check':
         print("Confidence: ", values['-PER-']/100)
-        
+    
+    # Event Trigger for Camera Enable #
     if event == 'Turn on camera':
         cap = Camera(values['-PER-']/100)
         cap.start_capture_session()
     
+    # Storing Updated Slider Value #
     if event == '-PER-':
         window['-PER-'].update(values['-PER-'][:-1])
         confidence_threshold = values['-PER-']/100
