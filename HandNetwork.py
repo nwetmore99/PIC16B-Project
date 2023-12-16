@@ -1,6 +1,9 @@
 import torch.nn as nn
 
 class HandNetwork(nn.Module):
+    """
+    Neural Network that is used to predict gestures given hand landmark coordinates (which can be extracted using Google's Mediapipe module)
+    """
     def __init__(self, classes):
         super(HandNetwork, self).__init__()
         self.flatten = nn.Flatten()
