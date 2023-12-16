@@ -54,13 +54,13 @@ class Camera():
                             for landmark in results.multi_hand_landmarks[0].landmark:
                                 x, y = landmark.x, landmark.y
                                 landmarks.append([x,y])
-                            with torch.no_grad():
+                            with torch.no_grad(): # we use torch.no_grad since during predictions we don't need to calculate gradients
                                 landmarks = torch.tensor(landmarks)
                                 out = self.model(landmarks.view(-1,21,2))
-                                confidence = torch.max(F.softmax(out,1)).item()
-                                prediction = torch.argmax(out)
+                                confidence = torch.max(F.softmax(out,1)).item() # softmax squishes values between 0 and 1, giving us confidence values to use
+                                prediction = torch.argmax(out) # argmaxing this will give us our prediciton index
                                 print(self.classes[prediction], confidence)
-                                if confidence >= self.confidence_threshold:
+                                if confidence >= self.confidence_threshold: # if confidence is higher than the threshold, allow gesture commands to be used
                                     if self.classes[prediction] == 'up':
                                         increase_volume()
                                     if self.classes[prediction] == 'down':
@@ -91,7 +91,7 @@ class Camera():
                 cv2.putText(image, f"FPS: {fps}", (20,70), cv2.FONT_HERSHEY_PLAIN, 3, (0, 196, 255), 2)
 
                 cv2.imshow("Hand Tracking", image)
-                if cv2.waitKey(10) & 0xFF == ord('q'):
+                if cv2.waitKey(10) & 0xFF == ord('q'): # when 'q' is pressed, exit out of the camera
                     self.end_capture_session()
                     break
             
